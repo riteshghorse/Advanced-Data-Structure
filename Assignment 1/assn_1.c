@@ -137,19 +137,114 @@ void mem_bin_search(char *key_file, char *seek_file)
 void disk_lin_search(char *key_file, char *seek_file)
 {
     int *s, *hit;
-    int i;  
+    int i, index;  
+    int buffer;
+
+    FILE *fp;
+
+    // step 1: open and read seek file into array s
     s = read_file_to_int_array(seek_file);
     nseeks = length;
+    
+    // hit: used to record if seek element si exists in k
     hit = (int*)malloc(nseeks*sizeof(int));
+
+    
+    fp = fopen(key_file, "rb");
+    
+    START_TIME;
+   
+    // printf("i: %d", i);
+    index=0;
+    for(i=0; i<nseeks; ++i)
+    {
+        // move seek to first location when searching for each s[i]
+        fseek(fp, 0, SEEK_SET);
+        hit[i] = 0;
+
+        // keep reading file until the key is found or EOF is reached
+        while (fread(&buffer, sizeof(int), 1, fp))
+        {   
+            if(buffer == s[i])
+            {
+                hit[i] = 1;
+                break;
+            }
+        }
+        if(hit[i] == 1)
+            printf( "%12d: Yes\n", s[i] ); 
+        else
+            printf( "%12d: No\n", s[i] ); 
+    }
+    END_TIME;
+    PRINT_DIFF;
+    // printf("%d", i);
+    fclose(fp);
+
 }
 
 void disk_bin_search(char *key_file, char *seek_file)
 {
     int *s, *hit;
-    int i;  
+    int i;
+    long temp;
+    size_t low, mid, high;  
+    int buffer;
+
+    FILE *fp;
+
+    // step 1: open and read seek file into array s
     s = read_file_to_int_array(seek_file);
     nseeks = length;
+    
+    // hit: used to record if seek element si exists in k
     hit = (int*)malloc(nseeks*sizeof(int));
+
+    fp = fopen(key_file, "rb");
+    
+    START_TIME;
+   
+    for(i=0; i<nseeks; ++i)
+    {
+        // move seek to first location when searching for each s[i]
+        fseek(fp, 0, SEEK_END);
+        high = ftell(fp);
+
+        fseek(fp, 0, SEEK_SET);
+        low = ftell(fp);
+        
+        hit[i] = 0;
+
+        // keep reading file until the key is found or EOF is reached
+        while (low <= high)
+        {   
+            // temp = high/sizeof(int);
+            mid = (temp/2)*sizeof(int);
+            fseek(fp, mid, SEEK_SET);
+            fread(&buffer, sizeof(int), 1, fp);
+            if(buffer == s[i])
+            {
+                hit[i] = 1;
+                break;
+            }
+            else if(buffer < s[i])
+            {
+                high = mid - sizeof(int);
+            }
+            else
+            {
+                low = mid + sizeof(int);
+            }
+        }
+        if(hit[i] == 1)
+            printf( "%12d: Yes\n", s[i] ); 
+        else
+            printf( "%12d: No\n", s[i] ); 
+    }
+    END_TIME;
+    PRINT_DIFF;
+    // printf("%d", i);
+    fclose(fp);
 }
 
 int main(int argc, char *argv[])
