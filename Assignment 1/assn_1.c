@@ -1,10 +1,17 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
+#include <sys/time.h>
+#define START_TIME gettimeofday( &start, NULL )
+#define END_TIME gettimeofday( &end, NULL )
+#define PRINT_DIFF printf( "Time: %ld.%06ld\n", end.tv_sec-start.tv_sec, end.tv_usec-start.tv_usec);
 
 int nkeys = 0;
 int nseeks = 0;
 int length = 0;
+
+
+struct timeval start, end;
 
 int get_length(char *data)
 {
@@ -37,20 +44,48 @@ int* read_file_to_int_array(char *data)
     }
     // printf("%d", i);
     fclose(fp);
-    
     return p;
 }
 
 void mem_lin_search(char *key_file, char *seek_file)
 {
     int *s, *k, *hit;
-    int i;  
-    k = read_file_to_int_array(key_file);
-    nkeys = length;
+    int i, j;  
+
+    // step 1: open and read seek file into array s
     s = read_file_to_int_array(seek_file);
     nseeks = length;
+    
+    // hit: used to record if seek element si exists in k
     hit = (int*)malloc(nseeks*sizeof(int));
 
+    START_TIME;
+    
+    //step 2: open and read key file into array k
+    k = read_file_to_int_array(key_file);
+    nkeys = length;
+    
+    // step 3: for each element in s perform sequential search on k
+    for(i=0; i<nseeks; ++i)
+    {
+        hit[i] = 0;
+        for(j=0; j<nkeys; ++j)
+        {
+            if(s[i] == k[j])
+            {
+                hit[i] = 1;
+                break;
+            }
+        }
+        if(hit[i] == 1)
+            printf( "%12d: Yes\n", s[i] ); 
+        else
+            printf( "%12d: No\n", s[i] ); 
+    }
+
+    END_TIME;
+    PRINT_DIFF;
+    
 
 
     // printf("\n%d\n",nseeks);
@@ -79,7 +114,7 @@ void disk_lin_search(char *key_file, char *seek_file)
     hit = (int*)malloc(nseeks*sizeof(int));
 }
 
-void disk_lin_search(char *key_file, char *seek_file)
+void disk_bin_search(char *key_file, char *seek_file)
 {
     int *s, *hit;
     int i;  
