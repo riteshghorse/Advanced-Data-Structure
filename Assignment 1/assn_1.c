@@ -85,24 +85,53 @@ void mem_lin_search(char *key_file, char *seek_file)
 
     END_TIME;
     PRINT_DIFF;
-    
-
-
-    // printf("\n%d\n",nseeks);
-    // for(i=0; i<nseeks; ++i)
-    //     printf("%d ", s[i]);
 }
 
 void mem_bin_search(char *key_file, char *seek_file)
 {
     int *s, *k, *hit;
-    int i;  
-    k = read_file_to_int_array(key_file);
-    nkeys = length;
+    int i, low, mid, high;
+
+    // step 1: open and read seek file into array s
     s = read_file_to_int_array(seek_file);
     nseeks = length;
+    
+    // hit: used to record if seek element si exists in k
     hit = (int*)malloc(nseeks*sizeof(int));
 
+    START_TIME;
+    
+    //step 2: open and read key file into array k
+    k = read_file_to_int_array(key_file);
+    nkeys = length;
+    
+    // step 3: for each element in s perform binary search on k
+    for(i=0; i<nseeks; ++i)
+    {
+        low = 0;
+        high = nkeys - 1;
+        hit[i] = 0;
+        while(low <= high)
+        {
+            mid = (low+high)/2;
+            if(s[i] == k[mid])
+            {
+                hit[i] = 1;
+                break;
+            }
+            else if(s[i] < k[mid])
+                high = mid-1;
+            else
+                low = mid + 1;
+        }
+        if(hit[i] == 1)
+            printf( "%12d: Yes\n", s[i] ); 
+        else
+            printf( "%12d: No\n", s[i] ); 
+    }
+    
+    END_TIME;
+    PRINT_DIFF;
 }
 
 void disk_lin_search(char *key_file, char *seek_file)
@@ -137,7 +166,6 @@ int main(int argc, char *argv[])
     if(strcmp(f_name, operations[0]) == 0)
     {
         // call to perform in memory linear search
-        // printf("in first if");
         mem_lin_search(key_file, seek_file);
     }
     if(strcmp(f_name, operations[1]) == 0)
@@ -162,3 +190,8 @@ int main(int argc, char *argv[])
     // {
     //     printf("\n%s", operations[i]);
     // }
+
+
+    // printf("\n%d\n",nseeks);
+    // for(i=0; i<nseeks; ++i)
+    //     printf("%d ", s[i]);
