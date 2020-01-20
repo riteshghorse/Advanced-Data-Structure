@@ -188,7 +188,7 @@ void disk_bin_search(char *key_file, char *seek_file)
     int *s, *hit;
     int i;
     long temp;
-    size_t low, mid, high;  
+    size_t low, mid, high, n_records, offset;  
     int buffer;
 
     FILE *fp;
@@ -201,39 +201,39 @@ void disk_bin_search(char *key_file, char *seek_file)
     hit = (int*)malloc(nseeks*sizeof(int));
 
     fp = fopen(key_file, "rb");
-    
+    // fseek(fp, -sizeof(int), SEEK_END);
+    // fread(&buffer, sizeof(int), 1, fp);
+    // printf("\nbuffer: %d", buffer);
     START_TIME;
    
     for(i=0; i<nseeks; ++i)
     {
         // move seek to first location when searching for each s[i]
-        fseek(fp, 0, SEEK_END);
-        high = ftell(fp);
-
+        fseek(fp, -sizeof(int), SEEK_END);
+        high = (ftell(fp))/sizeof(int);
         fseek(fp, 0, SEEK_SET);
-        low = ftell(fp);
-        
+        low = (ftell(fp))/sizeof(int);
+
         hit[i] = 0;
 
         // keep reading file until the key is found or EOF is reached
         while (low <= high)
         {   
-            // temp = high/sizeof(int);
-            mid = (temp/2)*sizeof(int);
-            fseek(fp, mid, SEEK_SET);
+            mid = (low+high)/2;
+            fseek(fp, mid*sizeof(int), SEEK_SET);
             fread(&buffer, sizeof(int), 1, fp);
             if(buffer == s[i])
             {
                 hit[i] = 1;
                 break;
             }
-            else if(buffer < s[i])
+            else if(buffer > s[i])
             {
-                high = mid - sizeof(int);
+                high = mid - 1;
             }
             else
             {
-                low = mid + sizeof(int);
+                low = mid + 1;
             }
         }
         if(hit[i] == 1)
