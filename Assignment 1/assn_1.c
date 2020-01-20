@@ -4,7 +4,7 @@
 #include <sys/time.h>
 #define START_TIME gettimeofday( &start, NULL )
 #define END_TIME gettimeofday( &end, NULL )
-#define PRINT_DIFF printf( "Time: %ld.%06ld\n", end.tv_sec-start.tv_sec, end.tv_usec-start.tv_usec);
+#define PRINT_DIFF printf( "Time: %ld.%06ld\n", end.tv_sec-start.tv_sec, end.tv_usec-start.tv_usec)
 
 int nkeys = 0;
 int nseeks = 0;
@@ -22,9 +22,8 @@ int get_length(char *data)
     
     i=0;
     while (fread(buffer, 1, sizeof(int), fp))
-    {   
         ++i;
-    }
+
     return i;
 }
 
@@ -39,10 +38,8 @@ int* read_file_to_int_array(char *data)
     int buffer[2];
     index=0;
     while (fread(buffer, 1, sizeof(int), fp))
-    {   
         p[index++] = buffer[0];
-    }
-    // printf("%d", i);
+
     fclose(fp);
     return p;
 }
@@ -148,13 +145,11 @@ void disk_lin_search(char *key_file, char *seek_file)
     
     // hit: used to record if seek element si exists in k
     hit = (int*)malloc(nseeks*sizeof(int));
-
     
     fp = fopen(key_file, "rb");
     
     START_TIME;
    
-    // printf("i: %d", i);
     index=0;
     for(i=0; i<nseeks; ++i)
     {
@@ -178,18 +173,14 @@ void disk_lin_search(char *key_file, char *seek_file)
     }
     END_TIME;
     PRINT_DIFF;
-    // printf("%d", i);
     fclose(fp);
-
 }
 
 void disk_bin_search(char *key_file, char *seek_file)
 {
     int *s, *hit;
-    int i;
-    long temp;
-    size_t low, mid, high, n_records, offset;  
-    int buffer;
+    size_t low, mid, high;  
+    int i, buffer;
 
     FILE *fp;
 
@@ -201,9 +192,7 @@ void disk_bin_search(char *key_file, char *seek_file)
     hit = (int*)malloc(nseeks*sizeof(int));
 
     fp = fopen(key_file, "rb");
-    // fseek(fp, -sizeof(int), SEEK_END);
-    // fread(&buffer, sizeof(int), 1, fp);
-    // printf("\nbuffer: %d", buffer);
+
     START_TIME;
    
     for(i=0; i<nseeks; ++i)
@@ -228,13 +217,9 @@ void disk_bin_search(char *key_file, char *seek_file)
                 break;
             }
             else if(buffer > s[i])
-            {
                 high = mid - 1;
-            }
             else
-            {
                 low = mid + 1;
-            }
         }
         if(hit[i] == 1)
             printf( "%12d: Yes\n", s[i] ); 
@@ -243,7 +228,6 @@ void disk_bin_search(char *key_file, char *seek_file)
     }
     END_TIME;
     PRINT_DIFF;
-    // printf("%d", i);
     fclose(fp);
 }
 
@@ -253,8 +237,8 @@ int main(int argc, char *argv[])
     char operations[][11]={"--mem-lin", "--mem-bin", "--disk-lin", "--disk-bin"};
     char key_file[15], seek_file[15], f_name[15];
 
+    // store the filenames and operation to be performed
     strcpy(f_name, argv[1]);
-    // printf("in first ");
     strcpy(key_file, argv[2]);
     strcpy(seek_file, argv[3]);
 
@@ -280,13 +264,3 @@ int main(int argc, char *argv[])
     }    
     return 0;
 }
-
- // for(i=0; i<4; ++i)
-    // {
-    //     printf("\n%s", operations[i]);
-    // }
-
-
-    // printf("\n%d\n",nseeks);
-    // for(i=0; i<nseeks; ++i)
-    //     printf("%d ", s[i]);
