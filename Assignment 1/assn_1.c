@@ -4,39 +4,49 @@
 #include <sys/time.h>
 #define START_TIME gettimeofday( &start, NULL )
 #define END_TIME gettimeofday( &end, NULL )
-#define PRINT_DIFF printf( "Time: %ld.%06ld\n", end.tv_sec-start.tv_sec, end.tv_usec-start.tv_usec)
 
 int nkeys = 0;
 int nseeks = 0;
-int length = 0;
 
 
 struct timeval start, end;
 
-int get_length(char *data)
-{
-    FILE *fp;
-    int i;
-    int buffer[2];
-    fp = fopen(data, "rb");
-    
-    i=0;
-    while (fread(buffer, 1, sizeof(int), fp))
-        ++i;
 
-    return i;
+void PRINT_DIFF()
+{
+    long s, us;
+    s = end.tv_sec - start.tv_sec;
+    us = end.tv_usec - start.tv_usec;
+    if(us < 0)
+    {
+        us = 1000000 - (-us);
+        s -= 1;
+    }
+    printf( "Time: %ld.%06ld\n", s, us);
 }
 
-int* read_file_to_int_array(char *data)
+int get_length(char*data) 
 {
-    int i, index, len = get_length(data);
-    int *p = (int*)malloc(len*sizeof(int));
-    length = len;
-
     FILE *fp;
+    int len;
+
+    fp = fopen(data, "rb");
+    fseek(fp, 0, SEEK_END);
+    len = ftell(fp)/sizeof(int);
+    fclose(fp);
+    return len;
+}
+
+int* read_file_to_int_array(char *data, int size)
+{
+    int i, index, len = size;
+    int *p = (int*)malloc(len*sizeof(int));
+    FILE *fp;
+
     fp = fopen(data, "rb");
     int buffer[2];
     index=0;
+
     while (fread(buffer, 1, sizeof(int), fp))
         p[index++] = buffer[0];
 
@@ -50,8 +60,8 @@ void mem_lin_search(char *key_file, char *seek_file)
     int i, j;  
 
     // step 1: open and read seek file into array s
-    s = read_file_to_int_array(seek_file);
-    nseeks = length;
+    nseeks = get_length(seek_file);
+    s = read_file_to_int_array(seek_file, nseeks);
     
     // hit: used to record if seek element si exists in k
     hit = (int*)malloc(nseeks*sizeof(int));
@@ -59,8 +69,8 @@ void mem_lin_search(char *key_file, char *seek_file)
     START_TIME;
     
     //step 2: open and read key file into array k
-    k = read_file_to_int_array(key_file);
-    nkeys = length;
+    nkeys = get_length(key_file);
+    k = read_file_to_int_array(key_file, nkeys);
     
     // step 3: for each element in s perform sequential search on k
     for(i=0; i<nseeks; ++i)
@@ -79,9 +89,8 @@ void mem_lin_search(char *key_file, char *seek_file)
         else
             printf( "%12d: No\n", s[i] ); 
     }
-
     END_TIME;
-    PRINT_DIFF;
+    PRINT_DIFF();
 }
 
 void mem_bin_search(char *key_file, char *seek_file)
@@ -90,8 +99,8 @@ void mem_bin_search(char *key_file, char *seek_file)
     int i, low, mid, high;
 
     // step 1: open and read seek file into array s
-    s = read_file_to_int_array(seek_file);
-    nseeks = length;
+    nseeks = get_length(seek_file);
+    s = read_file_to_int_array(seek_file, nseeks);
     
     // hit: used to record if seek element si exists in k
     hit = (int*)malloc(nseeks*sizeof(int));
@@ -99,8 +108,8 @@ void mem_bin_search(char *key_file, char *seek_file)
     START_TIME;
     
     //step 2: open and read key file into array k
-    k = read_file_to_int_array(key_file);
-    nkeys = length;
+    nkeys = get_length(key_file);
+    k = read_file_to_int_array(key_file, nkeys);
     
     // step 3: for each element in s perform binary search on k
     for(i=0; i<nseeks; ++i)
@@ -126,22 +135,21 @@ void mem_bin_search(char *key_file, char *seek_file)
         else
             printf( "%12d: No\n", s[i] ); 
     }
-    
     END_TIME;
-    PRINT_DIFF;
+    PRINT_DIFF();
 }
 
 void disk_lin_search(char *key_file, char *seek_file)
 {
     int *s, *hit;
-    int i, index;  
+    int i;  
     int buffer;
 
     FILE *fp;
 
     // step 1: open and read seek file into array s
-    s = read_file_to_int_array(seek_file);
-    nseeks = length;
+    nseeks = get_length(seek_file);
+    s = read_file_to_int_array(seek_file, nseeks);
     
     // hit: used to record if seek element si exists in k
     hit = (int*)malloc(nseeks*sizeof(int));
@@ -149,8 +157,7 @@ void disk_lin_search(char *key_file, char *seek_file)
     fp = fopen(key_file, "rb");
     
     START_TIME;
-   
-    index=0;
+
     for(i=0; i<nseeks; ++i)
     {
         // move seek to first location when searching for each s[i]
@@ -172,7 +179,7 @@ void disk_lin_search(char *key_file, char *seek_file)
             printf( "%12d: No\n", s[i] ); 
     }
     END_TIME;
-    PRINT_DIFF;
+    PRINT_DIFF();
     fclose(fp);
 }
 
@@ -185,8 +192,8 @@ void disk_bin_search(char *key_file, char *seek_file)
     FILE *fp;
 
     // step 1: open and read seek file into array s
-    s = read_file_to_int_array(seek_file);
-    nseeks = length;
+    nseeks = get_length(seek_file);
+    s = read_file_to_int_array(seek_file, nseeks);
     
     // hit: used to record if seek element si exists in k
     hit = (int*)malloc(nseeks*sizeof(int));
@@ -227,7 +234,7 @@ void disk_bin_search(char *key_file, char *seek_file)
             printf( "%12d: No\n", s[i] ); 
     }
     END_TIME;
-    PRINT_DIFF;
+    PRINT_DIFF();
     fclose(fp);
 }
 
@@ -247,20 +254,25 @@ int main(int argc, char *argv[])
         // call to perform in memory linear search
         mem_lin_search(key_file, seek_file);
     }
-    if(strcmp(f_name, operations[1]) == 0)
+    else if(strcmp(f_name, operations[1]) == 0)
     {
         // call to perform in memory binary search
         mem_bin_search(key_file, seek_file);
     }
-    if(strcmp(f_name, operations[2]) == 0)
+    else if(strcmp(f_name, operations[2]) == 0)
     {
         // call to perform disk based linear search
         disk_lin_search(key_file, seek_file);
     }
-    if(strcmp(f_name, operations[3]) == 0)
+    else if(strcmp(f_name, operations[3]) == 0)
     {
         // call to perform disk based binary search
         disk_bin_search(key_file, seek_file);
-    }    
+    }
+    else
+    {
+        printf("\nWrong Input.\nPlease specify one of following operations: --mem-lin, --mem-bin, --disk-lin, --disk-bin\n");
+    }
+        
     return 0;
 }
