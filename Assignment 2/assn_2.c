@@ -167,7 +167,7 @@ int main(int argc, char* argv[])
     FILE *db;
     char dbname[20], mode[20];
     char modes[][15] = {"--best-fit", "--worst-fit", "--first-fit"};
-
+    int i, hole_n=0, hole_siz=0;
 
     loadIndexes();
     loadAvailList();
@@ -220,11 +220,31 @@ int main(int argc, char* argv[])
         {
             /* code */
         }
-
+        
         // printf("\nStart\n%s", command);
         // printf("\n%s", id);
         // printf("\n%s\nEnd", record);
     } while (strcmp(command, commands[3]));
-    
+    printf("\nIndex:");
+    for(i=0; i<indexes_len; ++i)
+    {
+        if(indexes[i].key != -1)
+        {
+            printf( "\nkey=%d: offset=%ld", indexes[i].key, indexes[i].off );
+        }
+    }
+    printf("\nAvailability:");
+    for(i=0; i<avail_list_len; ++i)
+    {
+        if(avail_list[i].siz != 0)
+        {
+            ++hole_n;
+            hole_siz += avail_list[i].siz;
+            printf( "\nsize=%d: offset=%ld", avail_list[i].siz, avail_list[i].off );
+        }
+    }    
+    printf( "\nNumber of holes: %d", hole_n );
+    printf( "\nHole space: %d", hole_siz );
+
     return 0;
 }
