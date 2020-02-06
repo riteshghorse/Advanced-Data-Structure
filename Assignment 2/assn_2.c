@@ -14,10 +14,10 @@ typedef struct{
 }avail_S;
 
 
-index_S *indexes;
-avail_S *avail_list;
+index_S *indexes=NULL;
+avail_S *avail_list=NULL;
 
-int indexes_len=0, avail_list_len=0;
+long indexes_len=0, avail_list_len=0;
 
 char command[4], record[100];
 int id;
@@ -31,7 +31,7 @@ int comparator(const void *first, const void *second)
     return (l - r); 
 } 
 
-long bin_search(int id, int flag)
+long bin_search(int id, int flag)   //flag is used for delete
 {
     int low, mid, high;
     low = 0; high = indexes_len - 1;
@@ -52,19 +52,20 @@ long bin_search(int id, int flag)
     return -1;
 }
 
-void add_first_fit(int id, char *record, int len)
+void add_first_fit(int id, char *record, int length)
 {
     if(bin_search(id, 0) != -1)
     {
         printf("\nRecord with SID=%d exists", id);
         return;
     }
-    int i;
+    int i, len;
     long offset;
     FILE *fp;
     fp = fopen("student.db", "r+b");
     fseek(fp, 0, SEEK_END);
     offset = ftell(fp);
+    len = length + sizeof(int);
     for(i=0; i<avail_list_len; ++i)
     {
         if(avail_list[i].siz >= len)
@@ -72,8 +73,8 @@ void add_first_fit(int id, char *record, int len)
             offset = avail_list[i].off;
             avail_list_len += 1;
             avail_list = (avail_S*)realloc(avail_list, avail_list_len*sizeof(avail_S));
-            avail_list[avail_list_len-1].off = avail_list[i].off + len + sizeof(int); //record and size
-            avail_list[avail_list_len-1].siz = avail_list[i].siz - len - sizeof(int);
+            avail_list[avail_list_len-1].off = avail_list[i].off + len; //record and size
+            avail_list[avail_list_len-1].siz = avail_list[i].siz - len;
             avail_list[i].siz = 0;
             break;
         }
@@ -134,11 +135,11 @@ void loadIndexes()
     if((fp = fopen("index.bin", "rb")) != NULL)
     {
         fseek(fp, 0, SEEK_END);
-        len = ftell(fp)/sizeof(index_S);
-        indexes_len = len * sizeof(index_S);
-        indexes = (index_S*)malloc(len*sizeof(index_S));
+        indexes_len = ftell(fp)/sizeof(index_S);
+        len = indexes_len * sizeof(index_S);
+        indexes = (index_S*)realloc(indexes, len);
         fseek(fp, 0, SEEK_SET);
-        fread(indexes, sizeof(index_S), len, fp);
+        fread(indexes, sizeof(index_S), indexes_len, fp);
         fclose(fp);
     }
 }
@@ -150,11 +151,11 @@ void loadAvailList()
     if((fp = fopen("list.bin", "rb")) != NULL)
     {
         fseek(fp, 0, SEEK_END);
-        len = ftell(fp)/sizeof(avail_S);
-        avail_list_len = len * sizeof(avail_S);
-        avail_list = (avail_S*)malloc(len*sizeof(avail_S));
+        avail_list_len = ftell(fp)/sizeof(avail_S);
+        len = avail_list_len * sizeof(avail_S);
+        avail_list = (avail_S*)realloc(avail_list, len);
         fseek(fp, 0, SEEK_SET);
-        fread(avail_list, sizeof(avail_S), len, fp);
+        fread(avail_list, sizeof(avail_S), avail_list_len, fp);
         fclose(fp);
     }
 }
@@ -171,7 +172,8 @@ int main(int argc, char* argv[])
 
     loadIndexes();
     loadAvailList();
-    
+    db = fopen("student.db", "wb");
+    fclose(db);
     strcpy(mode, argv[1]);
     // printf("\n%s", mode);
     strcpy(dbname, argv[2]);
@@ -245,6 +247,11 @@ int main(int argc, char* argv[])
     }    
     printf( "\nNumber of holes: %d", hole_n );
     printf( "\nHole space: %d", hole_siz );
-
+    db = fopen( "index.bin", "wb" ); 
+    fwrite( indexes, sizeof( index_S ), indexes_len, db ); 
+    fclose( db ); 
+    db = fopen( "list.bin", "wb" ); 
+    fwrite( avail_list, sizeof( avail_S ), avail_list_len, db ); 
+    fclose( db ); 
     return 0;
 }
