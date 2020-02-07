@@ -56,7 +56,7 @@ void add_first_fit(int id, char *record, int length)
 {
     if(bin_search(id, 0) != -1)
     {
-        printf("\nRecord with SID=%d exists", id);
+        printf("Record with SID=%d exists\n", id);
         return;
     }
     int i, len;
@@ -65,7 +65,7 @@ void add_first_fit(int id, char *record, int length)
     fp = fopen("student.db", "r+b");
     fseek(fp, 0, SEEK_END);
     offset = ftell(fp);
-    len = length + sizeof(int);
+    len = length*sizeof(record[0]);
     for(i=0; i<avail_list_len; ++i)
     {
         if(avail_list[i].siz >= len)
@@ -73,8 +73,8 @@ void add_first_fit(int id, char *record, int length)
             offset = avail_list[i].off;
             avail_list_len += 1;
             avail_list = (avail_S*)realloc(avail_list, avail_list_len*sizeof(avail_S));
-            avail_list[avail_list_len-1].off = avail_list[i].off + len; //record and size
-            avail_list[avail_list_len-1].siz = avail_list[i].siz - len;
+            avail_list[avail_list_len-1].off = avail_list[i].off + len + sizeof(int); //record and size
+            avail_list[avail_list_len-1].siz = avail_list[i].siz - len - sizeof(int);
             avail_list[i].siz = 0;
             break;
         }
@@ -85,7 +85,7 @@ void add_first_fit(int id, char *record, int length)
     indexes[indexes_len-1].off = offset; 
     fseek(fp, offset, SEEK_SET);
     fwrite(&len, sizeof(int), 1, fp);
-    fwrite(record, len, 1, fp);
+    fwrite(record, sizeof(record[0]), length, fp);
     fclose(fp);
     qsort((void*)indexes, indexes_len, sizeof(index_S), comparator);
 }
@@ -96,7 +96,7 @@ void del_first_fit(int id)
     int len;
     if(offset == -1)
     {
-        printf("\nNo record with SID=%d exists", id);
+        printf("No record with SID=%d exists\n", id);
         return;
     }
     FILE *fp = fopen("student.db", "r+b");
@@ -115,7 +115,7 @@ void find(int id)
     int len;
     if(offset == -1)
     {
-        printf("\nNo record with SID=%d exists", id);
+        printf("No record with SID=%d exists\n", id);
         return;
     }
     FILE *fp = fopen("student.db", "r+b");
@@ -123,7 +123,7 @@ void find(int id)
     fread(&len, sizeof(int), 1, fp);
     buf = (char*)malloc(len);
     fread(buf, len, 1, fp);
-    printf("\n%s", buf);
+    printf("%s\n", buf);
     fclose(fp);
 }
 
@@ -172,12 +172,13 @@ int main(int argc, char* argv[])
 
     loadIndexes();
     loadAvailList();
-    db = fopen("student.db", "wb");
+    if((db=fopen("student.db", "r+b")) ==  NULL)
+        db = fopen("student.db", "wb");
     fclose(db);
     strcpy(mode, argv[1]);
-    // printf("\n%s", mode);
+    // printf("%s\n", mode);
     strcpy(dbname, argv[2]);
-    // printf("\n%s", dbname);
+    // printf("%s\n", dbname);
     do
     {
         
@@ -223,30 +224,30 @@ int main(int argc, char* argv[])
             /* code */
         }
         
-        // printf("\nStart\n%s", command);
-        // printf("\n%s", id);
-        // printf("\n%s\nEnd", record);
+        // printf("Start\n%s\n", command);
+        // printf("%s\n", id);
+        // printf("%s\nEnd\n", record);
     } while (strcmp(command, commands[3]));
-    printf("\nIndex:");
+    printf("Index:\n");
     for(i=0; i<indexes_len; ++i)
     {
         if(indexes[i].key != -1)
         {
-            printf( "\nkey=%d: offset=%ld", indexes[i].key, indexes[i].off );
+            printf( "key=%d: offset=%ld\n", indexes[i].key, indexes[i].off );
         }
     }
-    printf("\nAvailability:");
+    printf("Availability:\n");
     for(i=0; i<avail_list_len; ++i)
     {
         if(avail_list[i].siz != 0)
         {
             ++hole_n;
             hole_siz += avail_list[i].siz;
-            printf( "\nsize=%d: offset=%ld", avail_list[i].siz, avail_list[i].off );
+            printf( "size=%d: offset=%ld\n", avail_list[i].siz, avail_list[i].off );
         }
     }    
-    printf( "\nNumber of holes: %d", hole_n );
-    printf( "\nHole space: %d", hole_siz );
+    printf( "Number of holes: %d\n", hole_n );
+    printf( "Hole space: %d\n", hole_siz );
     db = fopen( "index.bin", "wb" ); 
     fwrite( indexes, sizeof( index_S ), indexes_len, db ); 
     fclose( db ); 
