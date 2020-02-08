@@ -16,7 +16,7 @@ key=610964732: offset=157
 key=707501190: offset=124
 key=747423886: offset=220
 Availability:
-size=30: offset=35
 size=32: offset=188
+size=30: offset=35
 Number of holes: 2
 Hole space: 62

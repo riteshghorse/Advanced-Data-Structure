@@ -69,7 +69,50 @@ long bin_search(int id, int flag)   //flag is used for delete
     return -1;
 }
 
-void add_worst_fit(int id, char *record, int length)
+// void add_worst_fit(int id, char *record, int length)
+// {
+//     if(bin_search(id, 0) != -1)
+//     {
+//         printf("Record with SID=%d exists\n", id);
+//         return;
+//     }
+//     int i, len;
+//     long offset;
+//     FILE *fp;
+
+//     qsort((void*)avail_list, avail_list_len, sizeof(avail_S), listComparatorDec);
+//     fp = fopen("student.db", "r+b");
+//     fseek(fp, 0, SEEK_END);
+//     offset = ftell(fp);
+//     len = length*sizeof(record[0]);
+//     for(i=0; i<avail_list_len; ++i)
+//     {
+//         if(avail_list[i].siz >= len)
+//         {
+//             offset = avail_list[i].off;
+//             if((avail_list[i].siz - len) > 0)
+//             {
+//                 avail_list_len += 1;
+//                 avail_list = (avail_S*)realloc(avail_list, avail_list_len*sizeof(avail_S));
+//                 avail_list[avail_list_len-1].off = avail_list[i].off + len + sizeof(int); //record and size
+//                 avail_list[avail_list_len-1].siz = avail_list[i].siz - len - sizeof(int);
+//             }
+//             avail_list[i].siz = 0;
+//             break;
+//         }
+//     }
+//     indexes_len += 1;
+//     indexes = (index_S*)realloc(indexes, indexes_len*sizeof(index_S));
+//     indexes[indexes_len-1].key = id;
+//     indexes[indexes_len-1].off = offset; 
+//     fseek(fp, offset, SEEK_SET);
+//     fwrite(&len, sizeof(int), 1, fp);
+//     fwrite(record, sizeof(record[0]), length, fp);
+//     fclose(fp);
+//     qsort((void*)indexes, indexes_len, sizeof(index_S), indexComparator);
+// }
+
+void add(int id, char *record, int length)
 {
     if(bin_search(id, 0) != -1)
     {
@@ -80,7 +123,7 @@ void add_worst_fit(int id, char *record, int length)
     long offset;
     FILE *fp;
 
-    qsort((void*)avail_list, avail_list_len, sizeof(avail_S), listComparatorDec);
+    // qsort((void*)avail_list, avail_list_len, sizeof(avail_S), listComparator);
     fp = fopen("student.db", "r+b");
     fseek(fp, 0, SEEK_END);
     offset = ftell(fp);
@@ -112,90 +155,47 @@ void add_worst_fit(int id, char *record, int length)
     qsort((void*)indexes, indexes_len, sizeof(index_S), indexComparator);
 }
 
-void add_best_fit(int id, char *record, int length)
-{
-    if(bin_search(id, 0) != -1)
-    {
-        printf("Record with SID=%d exists\n", id);
-        return;
-    }
-    int i, len;
-    long offset;
-    FILE *fp;
-
-    qsort((void*)avail_list, avail_list_len, sizeof(avail_S), listComparator);
-    fp = fopen("student.db", "r+b");
-    fseek(fp, 0, SEEK_END);
-    offset = ftell(fp);
-    len = length*sizeof(record[0]);
-    for(i=0; i<avail_list_len; ++i)
-    {
-        if(avail_list[i].siz >= len)
-        {
-            offset = avail_list[i].off;
-            if((avail_list[i].siz - len) > 0)
-            {
-                avail_list_len += 1;
-                avail_list = (avail_S*)realloc(avail_list, avail_list_len*sizeof(avail_S));
-                avail_list[avail_list_len-1].off = avail_list[i].off + len + sizeof(int); //record and size
-                avail_list[avail_list_len-1].siz = avail_list[i].siz - len - sizeof(int);
-            }
-            avail_list[i].siz = 0;
-            break;
-        }
-    }
-    indexes_len += 1;
-    indexes = (index_S*)realloc(indexes, indexes_len*sizeof(index_S));
-    indexes[indexes_len-1].key = id;
-    indexes[indexes_len-1].off = offset; 
-    fseek(fp, offset, SEEK_SET);
-    fwrite(&len, sizeof(int), 1, fp);
-    fwrite(record, sizeof(record[0]), length, fp);
-    fclose(fp);
-    qsort((void*)indexes, indexes_len, sizeof(index_S), indexComparator);
-}
 
 
+// void add_first_fit(int id, char *record, int length)
+// {
+//     if(bin_search(id, 0) != -1)
+//     {
+//         printf("Record with SID=%d exists\n", id);
+//         return;
+//     }
+//     int i, len;
+//     long offset;
+//     FILE *fp;
+//     fp = fopen("student.db", "r+b");
+//     fseek(fp, 0, SEEK_END);
+//     offset = ftell(fp);
+//     len = length*sizeof(record[0]);
+//     for(i=0; i<avail_list_len; ++i)
+//     {
+//         if(avail_list[i].siz >= len)
+//         {
+//             offset = avail_list[i].off;
+//             avail_list_len += 1;
+//             avail_list = (avail_S*)realloc(avail_list, avail_list_len*sizeof(avail_S));
+//             avail_list[avail_list_len-1].off = avail_list[i].off + len + sizeof(int); //record and size
+//             avail_list[avail_list_len-1].siz = avail_list[i].siz - len - sizeof(int);
+//             avail_list[i].siz = 0;
+//             break;
+//         }
+//     }
+//     indexes_len += 1;
+//     indexes = (index_S*)realloc(indexes, indexes_len*sizeof(index_S));
+//     indexes[indexes_len-1].key = id;
+//     indexes[indexes_len-1].off = offset; 
+//     fseek(fp, offset, SEEK_SET);
+//     fwrite(&len, sizeof(int), 1, fp);
+//     fwrite(record, sizeof(record[0]), length, fp);
+//     fclose(fp);
+//     qsort((void*)indexes, indexes_len, sizeof(index_S), indexComparator);
+// }
 
-void add_first_fit(int id, char *record, int length)
-{
-    if(bin_search(id, 0) != -1)
-    {
-        printf("Record with SID=%d exists\n", id);
-        return;
-    }
-    int i, len;
-    long offset;
-    FILE *fp;
-    fp = fopen("student.db", "r+b");
-    fseek(fp, 0, SEEK_END);
-    offset = ftell(fp);
-    len = length*sizeof(record[0]);
-    for(i=0; i<avail_list_len; ++i)
-    {
-        if(avail_list[i].siz >= len)
-        {
-            offset = avail_list[i].off;
-            avail_list_len += 1;
-            avail_list = (avail_S*)realloc(avail_list, avail_list_len*sizeof(avail_S));
-            avail_list[avail_list_len-1].off = avail_list[i].off + len + sizeof(int); //record and size
-            avail_list[avail_list_len-1].siz = avail_list[i].siz - len - sizeof(int);
-            avail_list[i].siz = 0;
-            break;
-        }
-    }
-    indexes_len += 1;
-    indexes = (index_S*)realloc(indexes, indexes_len*sizeof(index_S));
-    indexes[indexes_len-1].key = id;
-    indexes[indexes_len-1].off = offset; 
-    fseek(fp, offset, SEEK_SET);
-    fwrite(&len, sizeof(int), 1, fp);
-    fwrite(record, sizeof(record[0]), length, fp);
-    fclose(fp);
-    qsort((void*)indexes, indexes_len, sizeof(index_S), indexComparator);
-}
-
-void del_first_fit(int id)
+void del(int id)
 {
     long offset = bin_search(id, 1);
     int len;
@@ -294,7 +294,8 @@ int main(int argc, char* argv[])
             {
                 scanf("%d", &id);
                 scanf("%s", record);
-                add_best_fit(id, record, strlen(record));
+                qsort((void*)avail_list, avail_list_len, sizeof(avail_S), listComparator);
+                add(id, record, strlen(record));
             }
             else if(!strcmp(command, commands[1]))
             {
@@ -304,7 +305,7 @@ int main(int argc, char* argv[])
             else if(!strcmp(command, commands[2]))
             {
                 scanf("%d", &id);
-                del_first_fit(id);
+                del(id);
                 qsort((void*)avail_list, avail_list_len, sizeof(avail_S), listComparator);
             }
             else
@@ -318,7 +319,8 @@ int main(int argc, char* argv[])
             {
                 scanf("%d", &id);
                 scanf("%s", record);
-                add_worst_fit(id, record, strlen(record));
+                qsort((void*)avail_list, avail_list_len, sizeof(avail_S), listComparatorDec);
+                add(id, record, strlen(record));
             }
             else if(!strcmp(command, commands[1]))
             {
@@ -328,7 +330,7 @@ int main(int argc, char* argv[])
             else if(!strcmp(command, commands[2]))
             {
                 scanf("%d", &id);
-                del_first_fit(id);
+                del(id);
                 qsort((void*)avail_list, avail_list_len, sizeof(avail_S), listComparatorDec);
             }
             else
@@ -342,7 +344,7 @@ int main(int argc, char* argv[])
             {
                 scanf("%d", &id);
                 scanf("%s", record);
-                add_first_fit(id, record, strlen(record));
+                add(id, record, strlen(record));
             }
             else if(!strcmp(command, commands[1]))
             {
@@ -352,7 +354,7 @@ int main(int argc, char* argv[])
             else if(!strcmp(command, commands[2]))
             {
                 scanf("%d", &id);
-                del_first_fit(id);
+                del(id);
             }
             else
                 break;    
