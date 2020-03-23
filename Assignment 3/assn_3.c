@@ -9,8 +9,7 @@ int comparator(const void *first, const void *second)
     return (l - r);
 }
 
-
-void create_runs(char filename[20])
+void createRuns(char filename[20])
 {
     int ip_buffer[1000];
     char op_file[30], temp[20];
@@ -44,7 +43,7 @@ int main(int argc, char *argv[])
     if(!strcmp(method, METHODS[0]))
     {
         // basic
-        create_runs(ip_filename);
+        createRuns(ip_filename);
 
     }
     else if(!strcmp(method, METHODS[0]))
@@ -59,15 +58,6 @@ int main(int argc, char *argv[])
     {
         printf("Pass a valid method\n");
     }
-    
-
-
-
-
-
-
-
-
 
 
     // for(i=0; i<argc; ++i)
